@@ -14,11 +14,11 @@ media library information between different DJ Software applications.
 # Installing
 
 ```
-# --process-dependency-links required for pulling an updated version of bpylist.
-$ pip install Djtools --process-dependency-links
+$ pip install Djtools
 
 # Tests
-$ pip install Djtools[test] --process-dependency-links && nosetests
+$ pip install Djtools[test]
+$ nosetests
 ```
 
 # Usage
