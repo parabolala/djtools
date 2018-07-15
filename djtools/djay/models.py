@@ -193,8 +193,8 @@ class NSOrderedSetArchiver:
 @dataclasses.dataclass
 class DjayTrack:
     title: ADCMediaItemTitleID
-    user_data: ADCMediaItemUserData
     global_location: ADCMediaItemLocation
+    user_data: ADCMediaItemUserData = None
     local_location: ADCMediaItemLocation = None
     global_location: ADCMediaItemLocation = None
     analysis: ADCMediaItemAnalyzedData = None

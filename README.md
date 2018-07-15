@@ -33,14 +33,21 @@ $ pip install Djtools[test] --process-dependency-links && nosetests
 >>> # Parse rekordbox XML library.
 >>> from djtools import rekordbox, matching, convert
 >>> rbts = rekordbox.parse_xml_file()
->>> print(rbt.Artist, rbt.Name)
+>>> print(rbts[0].Artist, rbts[0].Name)
 
 >>> # Transfer cue points from rekordbox XML library to matching tracks in djay Pro 2.
 >>> for dj_t in e.get_all_tracks():
->>>     print(dj_t.title.artist + ' - ' + dj_t.title.title)
+>>>     print('Djay track: ' + dj_t.title.artist + ' - ' + dj_t.title.title)
 >>>     match = matching.find_matching_track(dj_t, rbts)
 >>>     if match is not None:
->>>         e.save_track(convert.transfer_cue_points(match, dj_t))
+>>>         result = convert.transfer_cue_points(match, dj_t)
+>>>         if result.user_data and result.user_data.cuePoints:
+>>>             print(f"Transferred {len(result.user_data.cuePoints)} cue points.")
+>>>         else:
+>>>             print("No cue points in RB track")
+>>>         e.save_track(result)
+>>>     else:
+>>>         print("No matching track in RB")
 >>>     print('===')
 ```
 
