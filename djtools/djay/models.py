@@ -15,46 +15,12 @@ from typing import Set
 import dataclasses
 
 from bpylist import archiver
+from bpylist.archive_types import DataclassArchiver
 
 
 class Error(Exception):
     pass
 
-def verify_dataclass_has_fields(dataclass, plist_obj):
-    dataclass_fields = dataclasses.fields(dataclass)
-
-    skip_fields = {'$class'}
-
-    fields_to_verify = plist_obj.keys() - skip_fields
-    fields_with_no_dots = {(f if not f.startswith('NS.') else 'NS' + f[3:])
-        for f in fields_to_verify}
-    unmapped_fields = fields_with_no_dots - {f.name for f in dataclass_fields}
-    if unmapped_fields:
-        raise Error(
-            f"Unmapped fields: {unmapped_fields} for class {dataclass}")
-
-
-class DataclassArchiver:
-    def encode_archive(self, archive):
-        for field in dataclasses.fields(type(self)):
-            archive_field_name = field.name
-            if archive_field_name[:2] == 'NS':
-              archive_field_name = 'NS.' + archive_field_name[2:]
-            archive.encode(archive_field_name, getattr(self, field.name))
-
-    @classmethod
-    def decode_archive(cls, archive):
-        verify_dataclass_has_fields(cls, archive._object)
-        field_values = {}
-        for field in dataclasses.fields(cls):
-            archive_field_name = field.name
-            if archive_field_name[:2] == 'NS':
-              archive_field_name = 'NS.' + archive_field_name[2:]
-            value = archive.decode(archive_field_name)
-            if isinstance(value, bytearray):
-              value = bytes(value)
-            field_values[field.name] = value
-        return cls(**field_values)
 
 @dataclasses.dataclass
 class ADCMediaItemTitleID(DataclassArchiver):

@@ -14,6 +14,7 @@
 import unittest
 
 from bpylist import archiver
+from bpylist import archive_types
 
 from djtools.djay import models
 
@@ -25,7 +26,7 @@ class TestArchivers(unittest.TestCase):
         models.register()
 
     def test_verify_dataclass_has_fields(self):
-        with self.assertRaises(models.Error):
+        with self.assertRaises(archive_types.Error):
             bplist = dj_tests.get_fixture_from_xml('cuepoint_extra_field.plist.xml')
             archiver.unarchive(bplist)
 

@@ -44,7 +44,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     license='Apache License 2.0',
     install_requires=[
-        'bpylist2==2.0.1',
+        'bpylist2==2.0.2',
         'dataclasses',
     ],
     extras_require={
