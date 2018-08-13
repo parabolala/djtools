@@ -16,8 +16,10 @@ from typing import Iterable, Optional
 from djtools.djay import models as djaymodels
 from djtools.rekordbox import models as rbmodels
 
+
 def duration_matches(dj_t: djaymodels.DjayTrack, rb_t: rbmodels.Track) -> bool:
     return abs(dj_t.title.duration - rb_t.TotalTime) < 1
+
 
 def title_matches(dj_t: djaymodels.DjayTrack, rb_t: rbmodels.Track) -> bool:
     if dj_t.title.title != rb_t.Name:
@@ -30,10 +32,11 @@ def title_matches(dj_t: djaymodels.DjayTrack, rb_t: rbmodels.Track) -> bool:
 
 
 def find_matching_track(dj_t: djaymodels.DjayTrack,
-                        rb_ts: Iterable[rbmodels.Track]) -> Optional[rbmodels.Track]:
+                        rb_ts: Iterable[rbmodels.Track]
+                        ) -> Optional[rbmodels.Track]:
     candidates = list(filter(lambda rb_t: duration_matches(dj_t, rb_t), rb_ts))
     if not candidates:
-        return
+        return None
 
     if len(candidates) == 1:
         return candidates[0]
@@ -43,5 +46,3 @@ def find_matching_track(dj_t: djaymodels.DjayTrack,
     if candidates:
         return candidates[0]
     return None
-
-

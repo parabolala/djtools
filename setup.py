@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from setuptools import setup, find_packages
 from os import path
 from io import open
+from setuptools import setup, find_packages
 
 
 here = path.abspath(path.dirname(__file__))
@@ -32,25 +32,30 @@ setup(
     author='Ievgen Varavva',
     author_email='yvaravva@google.com',
     classifiers=[
-       "Development Status :: 3 - Alpha",
-       "Intended Audience :: Developers",
-       "Intended Audience :: End Users/Desktop",
-       "Topic :: Multimedia :: Sound/Audio :: Analysis",
-       "Topic :: Multimedia :: Sound/Audio :: Editors",
-       "License :: OSI Approved :: Apache Software License",
-       "Programming Language :: Python :: 3.6",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: End Users/Desktop",
+        "Topic :: Multimedia :: Sound/Audio :: Analysis",
+        "Topic :: Multimedia :: Sound/Audio :: Editors",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.6",
     ],
     keywords='dj djay rekordbox cue points',
     packages=find_packages(exclude=['tests']),
     license='Apache License 2.0',
     install_requires=[
         'bpylist2==2.0.2',
-        'dataclasses',
+        'dataclasses;python_version<"3.7"',
     ],
-    extras_require={
-        'test': ['nose'],
-    },
+    tests_require=["pytest"],
+    setup_requires=[
+        "pycodestyle==2.3.1",
+        "pytest-runner",
+        "pytest-pylint",
+        "pytest-codestyle",
+        "pytest-flake8==1.0.1",
+        "pytest-mypy",
+        'dataclasses;python_version<"3.7"',
+    ],
     python_requires='>=3.0',
-    test_suite='nose.collector',
-    tests_require=['nose'],
 )

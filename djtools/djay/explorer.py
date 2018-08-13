@@ -13,38 +13,51 @@
 # limitations under the License.
 import os
 import sqlite3
-from typing import Tuple, List
+from typing import List, Optional
+
+import dataclasses
+
 from bpylist import archiver
 
 from . import models
 
 
-DEFAULT_MEDIALIBRARY_DB_FILE = ('/Users/yvaravva/Music/djay Pro 2/'
-                                'djay Media Library.djayMediaLibrary/'
-                                'MediaLibrary.db')
+DEFAULT_MEDIALIBRARY_DB_FILE = (b'/Users/yvaravva/Music/djay Pro 2/'
+                                b'djay Media Library.djayMediaLibrary/'
+                                b'MediaLibrary.db')
 
 
-Row = Tuple[str, str, str, bytes, bytes]
+@dataclasses.dataclass
+class Row:
+    rowid: str
+    collection: str
+    key: str
+    data: bytes
+    metadata: bytes
 
 
 class Error(Exception):
     pass
 
+
 class BadDataFormatError(Error):
     pass
+
 
 def is_supported_version(version_string):
     return version_string == '2.0.6'
 
 
 class Explorer:
-    _fname: bytes = None
-    _query: str = "select rowid, collection, key, data, metadata from database2;"
-    _data: List[Row] = None
+    _fname: bytes = b''
+    _query: str = ("select rowid, collection, key, data, metadata "
+                   "from database2;")
+    _data: Optional[List[Row]] = None
 
-    ROWID_COL, COLLECTION_COL, KEY_COL, DATA_COL, METADATA_COL = range(5)
-
-    def __init__(self, medialibrary_db_fname: bytes=DEFAULT_MEDIALIBRARY_DB_FILE):
+    def __init__(
+            self,
+            medialibrary_db_fname: bytes = DEFAULT_MEDIALIBRARY_DB_FILE
+    ) -> None:
         self._fname = medialibrary_db_fname
 
     def load(self):
@@ -54,7 +67,7 @@ class Explorer:
         data = []
         with sqlite3.connect(self._fname) as conn:
             for row in conn.execute(self._query):
-                data.append(row)
+                data.append(Row(*row))
         self._data = data
         self.verify_version()
 
@@ -62,38 +75,36 @@ class Explorer:
     def data(self) -> List[Row]:
         if self._data is None:
             self.load()
-        return self._data
+        return self._data  # type: ignore
 
-    def get_rows(self, key: str=None, collection: str=None) -> List[Row]:
+    def get_rows(self, key: str = None, collection: str = None) -> List[Row]:
         results = []
         for row in self.data:
-            if key is None or row[self.KEY_COL] == key:
-                if collection is None or row[self.COLLECTION_COL] == collection:
+            if key is None or row.key == key:
+                if collection is None or row.collection == collection:
                     results.append(row)
         return results
 
     def verify_version(self):
         products_rows = self.get_rows(
-                collection='products',
-                key='com.algoriddim.direct.djay-pro-2-mac-Mac',
+            collection='products',
+            key='com.algoriddim.direct.djay-pro-2-mac-Mac',
         )
         if not products_rows:
             raise BadDataFormatError(
-                    "Didn't find database row for collection=products. "
-                    "Unsupported djay version?")
+                "Didn't find database row for collection=products. "
+                "Unsupported djay version?")
         products_row = products_rows[0]
 
-        try:
-            product = archiver.unarchive(products_row[-2])
-        except Exception:
-            raise
+        product = archiver.unarchive(products_row.data)
 
         if not is_supported_version(product.version):
             raise BadDataFormatError('Unsupported djay Pro 2 version: ' +
                                      product.version)
 
     def get_track_ids(self) -> List[str]:
-        return [row[self.KEY_COL] for row in self.get_rows(collection='mediaItemTitleIDs')]
+        return [row.key
+                for row in self.get_rows(collection='mediaItemTitleIDs')]
 
     def load_track(self, track_id: str):
         rows = self.get_rows(key=track_id)
@@ -107,31 +118,37 @@ class Explorer:
         }
         field_values = {}
         for row in rows:
-            field_values[collection_to_field[row[self.COLLECTION_COL]]] = archiver.unarchive(row[self.DATA_COL])
-        track = models.DjayTrack(**field_values)
+            field_values[collection_to_field[row.collection]
+                         ] = archiver.unarchive(row.data)
+        track = models.DjayTrack(**field_values)  # type: ignore
         return track
 
-    def find_track(self, track_id: str=None, artist: str=None, title: str=None, duration: float=None) -> models.DjayTrack:
-        if all([track_id is None, artist is None, title is None, duration is None]):
+    def find_track(self, track_id: str = None, artist: str = None,
+                   title: str = None,
+                   duration: float = None) -> models.DjayTrack:
+        if all([track_id is None, artist is None, title is None,
+                duration is None]):
             raise Error("At least one of track_id, artist, title are required")
 
         results = []
         for row in self.get_rows(collection='mediaItemTitleIDs'):
-            if track_id is not None and row[self.KEY_COL] != track_id:
+            if track_id is not None and row.key != track_id:
                 continue
-            title_obj = archiver.unarchive(row[self.DATA_COL])
+            title_obj = archiver.unarchive(row.data)
 
             if artist is not None and title_obj.artist != artist:
                 continue
             if title is not None and title_obj.title != title:
                 continue
-            if duration is not None and abs(title_obj.duration - duration) > .01:
+            if (duration is not None and
+                    abs(title_obj.duration - duration) > .01):
                 continue
 
-            results.append(self.load_track(row[self.KEY_COL]))
+            results.append(self.load_track(row.key))
 
         if not results:
-            raise Error(f"Track not found for id={track_id} artist={artist} title={title} duration={duration}")
+            raise Error(f"Track not found for id={track_id} artist={artist} "
+                        f"title={title} duration={duration}")
 
         if len(results) > 1:
             raise Error(f"More than one track matched: {results}")
@@ -142,9 +159,9 @@ class Explorer:
 
         uuid = track.title.uuid
         rows = []
-        rows.append(('mediaItemUserData', uuid, archiver.archive(track.user_data)))
+        rows.append(('mediaItemUserData', uuid,
+                     archiver.archive(track.user_data)))
         rows.append(('mediaItemTitleIDs', uuid, archiver.archive(track.title)))
-        #rows.append(('localMediaItemLocations', uuid, archiver.archive(track.local_location)))
         if track.analysis is not None:
             rows.append(('mediaItemAnalyzedData', uuid,
                          archiver.archive(track.analysis)))
@@ -155,13 +172,15 @@ class Explorer:
                 conn.execute(query, (row[2], row[0], row[1]))
         self.load()
 
-    def validate_track(self, track):
+    @staticmethod
+    def validate_track(track):
         for field_name in ['analysis', 'local_location', 'global_location']:
             if getattr(track, field_name, None) is not None:
-                if (track.title.uuid != getattr(track, field_name).uuid):
+                if track.title.uuid != getattr(track, field_name).uuid:
                     raise Error('Malformed track: title UUID (%s) doesn\'t '
                                 'match %s UUID (%s)' % (
                                     track.title.uuid, field_name,
                                     getattr(track, field_name).uuid))
+
     def get_all_tracks(self):
         return [self.load_track(t_id) for t_id in self.get_track_ids()]
