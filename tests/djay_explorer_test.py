@@ -23,9 +23,10 @@ from .common import dj_tests
 
 
 INSERT_QUERY = (
-        'INSERT INTO database2(rowid, collection, key, data, metadata)'
-        ' VALUES (?,?,?,?,?)'
+    'INSERT INTO database2(rowid, collection, key, data, metadata)'
+    ' VALUES (?,?,?,?,?)'
 )
+
 
 def get_fixture_schema():
     fname = os.path.join(dj_tests.XML_FIXTURES_DIR, 'schema.sql')
@@ -37,6 +38,7 @@ def data_fixture_row(collection, key, data_xml):
     data = dj_tests.get_fixture_from_xml(data_xml)
     ExplorerTest.rowid += 1
     return (ExplorerTest.rowid-1, collection, key, data, None)
+
 
 class ExplorerTest(unittest.TestCase):
     rowid = 1
@@ -69,16 +71,19 @@ class ExplorerTest(unittest.TestCase):
             for row in [data_fixture_row(
                     'products', 'com.algoriddim.direct.djay-pro-2-mac-Mac',
                     'product_bad_version.xml'),
-            ]:
+                       ]:
                 self.db.execute(INSERT_QUERY, row)
         with self.assertRaises(explorer.BadDataFormatError):
+            # pylint: disable=expression-not-assigned
             Explorer(self.db_fname).data
+            # pylint: enable=expression-not-assigned
 
     def test_get_track_ids(self):
         expected_track_ids = ['foo', 'bar', 'baz']
         with self.db:
-            for row in [data_fixture_row('mediaItemTitleIDs', track_id, '/dev/null')
-                    for track_id in expected_track_ids]:
+            for row in [data_fixture_row('mediaItemTitleIDs', track_id,
+                                         '/dev/null')
+                        for track_id in expected_track_ids]:
                 self.db.execute(INSERT_QUERY, row)
                 self.rowid += 1
 
@@ -92,8 +97,7 @@ class ExplorerTest(unittest.TestCase):
                     ('mediaItemUserData', 'userdata.plist.xml'),
                     ('mediaItemTitleIDs', 'adctitle.plist.xml'),
                     ('mediaItemAnalyzedData', 'analyzed_data.plist.xml'),
-                    ('localMediaItemLocations', 'location.plist.xml'),
-                ]:
+                    ('localMediaItemLocations', 'location.plist.xml')]:
                 row = data_fixture_row(table, track_id, data)
                 self.db.execute(INSERT_QUERY, row)
         self.e.load()
@@ -120,8 +124,8 @@ class ExplorerTest(unittest.TestCase):
         self.assertEqual(self.e.find_track(title=expected_track.title.title),
                          expected_track)
         self.assertEqual(
-                self.e.find_track(duration=expected_track.title.duration),
-                expected_track)
+            self.e.find_track(duration=expected_track.title.duration),
+            expected_track)
 
         with self.assertRaises(explorer.Error):
             self.e.find_track(duration=5)

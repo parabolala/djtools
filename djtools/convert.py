@@ -17,16 +17,17 @@ from djtools.djay import models as djaymodels
 from djtools.rekordbox import models as rbmodels
 
 
-def transfer_cue_points(rb_t: rbmodels.Track, dj_t: djaymodels.DjayTrack) -> djaymodels.DjayTrack:
+def transfer_cue_points(rb_t: rbmodels.Track,
+                        dj_t: djaymodels.DjayTrack) -> djaymodels.DjayTrack:
     result = copy.deepcopy(dj_t)
     if result.user_data is None:
-      result.user_data = djaymodels.ADCMediaItemUserData()
-      print(result.user_data.cuePoints)
-      result.user_data.cuePoints = []
-      for i, cp in enumerate(rb_t.CuePoints):
-          result.user_data.cuePoints.append(djaymodels.ADCCuePoint(
-              comment=cp.Name,
-              number=i + 1,
-              time=cp.Start,
-          ))
+        result.user_data = djaymodels.ADCMediaItemUserData()
+        print(result.user_data.cuePoints)
+        result.user_data.cuePoints = []
+        for i, cp in enumerate(rb_t.CuePoints):
+            result.user_data.cuePoints.append(djaymodels.ADCCuePoint(
+                comment=cp.Name,
+                number=i + 1,
+                time=cp.Start,
+            ))
     return result

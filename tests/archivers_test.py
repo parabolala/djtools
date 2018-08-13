@@ -27,7 +27,8 @@ class TestArchivers(unittest.TestCase):
 
     def test_verify_dataclass_has_fields(self):
         with self.assertRaises(archive_types.Error):
-            bplist = dj_tests.get_fixture_from_xml('cuepoint_extra_field.plist.xml')
+            bplist = dj_tests.get_fixture_from_xml(
+                'cuepoint_extra_field.plist.xml')
             archiver.unarchive(bplist)
 
     def test_title_unarchive(self):
@@ -80,7 +81,7 @@ class TestArchivers(unittest.TestCase):
                                    time=114.83682250976562)
             ],
             startPoint=models.ADCCuePoint(comment=None, number=0,
-                                   time=112.90266418457031),
+                                          time=112.90266418457031),
             uuid='71f9ccc746630c592ceeed39cbc837b2',
             playCount=7,
             energy=15,
@@ -110,9 +111,9 @@ class TestArchivers(unittest.TestCase):
 
     def test_analyzed_data_e2e(self):
         expected = models.ADCMediaItemAnalyzedData(
-                bpm=1,
-                keySignatureIndex=10,
-                uuid="foo",
+            bpm=1,
+            keySignatureIndex=10,
+            uuid="foo",
         )
         actual = archiver.unarchive(archiver.archive(expected))
         self.assertEqual(actual, expected)

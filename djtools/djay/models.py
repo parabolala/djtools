@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Set
+from typing import Optional, Set
 import dataclasses
 
 from bpylist import archiver
@@ -34,7 +34,7 @@ class ADCMediaItemTitleID(DataclassArchiver):
 
 @dataclasses.dataclass
 class ADCCuePoint(DataclassArchiver):
-    comment: str = None
+    comment: Optional[str] = None
     number: int = 0
     time: float = 0
 
@@ -42,8 +42,8 @@ class ADCCuePoint(DataclassArchiver):
 @dataclasses.dataclass
 class ADCMediaItemUserData(DataclassArchiver):
     cuePoints: list = dataclasses.field(default_factory=list)
-    endPoint: ADCCuePoint = None
-    energy: float = 0 # ?
+    endPoint: Optional[ADCCuePoint] = None
+    energy: float = 0  # ?
     highEQ: float = 0
     midEQ: float = 0
     lowEQ: float = 0
@@ -56,7 +56,7 @@ class ADCMediaItemUserData(DataclassArchiver):
     manualKeySignatureIndex: int = 0
     playCount: int = 0
     rating: int = 0
-    startPoint: ADCCuePoint = None
+    startPoint: Optional[ADCCuePoint] = None
     tagUUIDs: list = dataclasses.field(default_factory=list)
     uuid: str = ""
     userChangedCloudKeys: Set[str] = dataclasses.field(default_factory=set)
@@ -79,13 +79,13 @@ class NSURL(DataclassArchiver):
 class ADCMediaItemLocation(DataclassArchiver):
     sourceURIs: Set[NSURL] = dataclasses.field(default_factory=set)
     type: int = 0
-    urlBookmarkData: bytes = ""
+    urlBookmarkData: bytes = b""
     uuid: str = ""
 
 
 @dataclasses.dataclass(frozen=True)
 class NSMutableData(DataclassArchiver):
-    NSdata: bytes = None
+    NSdata: Optional[bytes] = None
 
     def __repr__(self):
         return "NSMutableData(%s bytes)" % (
@@ -143,6 +143,7 @@ class ADCMediaItem(DataclassArchiver):
 class NSOrderedSetArchiver:
     "Delegate for packing/unpacking NS(Mutable)Array objects"
 
+    @staticmethod
     def decode_archive(archive):
         res = []
         i = 0
@@ -159,12 +160,11 @@ class NSOrderedSetArchiver:
 @dataclasses.dataclass
 class DjayTrack:
     title: ADCMediaItemTitleID
-    global_location: ADCMediaItemLocation
-    user_data: ADCMediaItemUserData = None
-    local_location: ADCMediaItemLocation = None
-    global_location: ADCMediaItemLocation = None
-    analysis: ADCMediaItemAnalyzedData = None
-    media_item: ADCMediaItem = None
+    user_data: Optional[ADCMediaItemUserData] = None
+    local_location: Optional[ADCMediaItemLocation] = None
+    global_location: Optional[ADCMediaItemLocation] = None
+    analysis: Optional[ADCMediaItemAnalyzedData] = None
+    media_item: Optional[ADCMediaItem] = None
 
 
 def register():
@@ -180,7 +180,7 @@ def register():
             ADCProduct,
     ]:
         archiver.update_class_map(
-                {dataclass.__name__: dataclass }
+            {dataclass.__name__: dataclass}
         )
     archiver.update_class_map({
         'NSOrderedSet': NSOrderedSetArchiver,

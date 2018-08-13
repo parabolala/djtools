@@ -11,12 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import dataclasses
 import os
-from typing import Iterable
+# pylint: disable=unused-import
+from typing import Dict, Iterable  # noqa: F401
+# pylint: enable=unused-import
 import xml.etree.ElementTree as ET
 
-DEFAULT_PATH = os.getenv('HOME') + "/Documents/rekordbox.xml"
+import dataclasses
+
+DEFAULT_PATH = os.getenv('HOME', '') + "/Documents/rekordbox.xml"
+
 
 @dataclasses.dataclass
 class Track:
@@ -30,17 +34,18 @@ class Track:
 
     @classmethod
     def parse(cls, track: ET.Element):
-        field_values = {}
+        field_values = {}  # type: Dict[str, object]
         for field in dataclasses.fields(cls):
             field_value = track.get(field.name)
             if field_value is not None:
-              field_value = field.type(field_value)
+                field_value = field.type(field_value)
             field_values[field.name] = field_value
 
-        cps = field_values['CuePoints'] = []
+        cps = []
         for mark in track.findall('POSITION_MARK'):
             cps.append(CuePoint.parse(mark))
-        return cls(**field_values)
+        field_values['CuePoints'] = cps
+        return cls(**field_values)  # type: ignore
 
 
 @dataclasses.dataclass
@@ -59,19 +64,21 @@ class CuePoint:
         for field in dataclasses.fields(cls):
             field_value = position_mark.get(field.name)
             if field_value is not None:
-              field_value = field.type(field_value)
+                field_value = field.type(field_value)
             field_values[field.name] = field_value
-        return cls(**field_values)
+        return cls(**field_values)  # type: ignore
 
 
 def parse_dj_collection(dj_collection: ET.Element) -> Iterable[Track]:
     collection = []
-    for track in dj_collection.find('COLLECTION'):
-        collection.append(Track.parse(track))
+    tracks = dj_collection.find('COLLECTION')
+    if tracks:
+        for track in tracks:
+            collection.append(Track.parse(track))
     return collection
 
 
-def parse_xml_file(file_path: str=DEFAULT_PATH) -> Iterable[Track]:
+def parse_xml_file(file_path: str = DEFAULT_PATH) -> Iterable[Track]:
     tree = ET.parse(file_path)
     root = tree.getroot()
     return parse_dj_collection(root)
