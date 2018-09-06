@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import getpass
 import os
 import sqlite3
 from typing import List, Optional
@@ -22,9 +23,10 @@ from bpylist import archiver
 from . import models
 
 
-DEFAULT_MEDIALIBRARY_DB_FILE = (b'/Users/yvaravva/Music/djay Pro 2/'
-                                b'djay Media Library.djayMediaLibrary/'
-                                b'MediaLibrary.db')
+DEFAULT_MEDIALIBRARY_DB_FILE = ('/Users/{user}/Music/djay Pro 2/'
+                                'djay Media Library.djayMediaLibrary/'
+                                'MediaLibrary.db').format(
+                                    user=getpass.getuser())
 
 
 @dataclasses.dataclass
@@ -45,18 +47,18 @@ class BadDataFormatError(Error):
 
 
 def is_supported_version(version_string):
-    return version_string == '2.0.6'
+    return version_string == '2.0.8'
 
 
 class Explorer:
-    _fname: bytes = b''
+    _fname: str = ''
     _query: str = ("select rowid, collection, key, data, metadata "
                    "from database2;")
     _data: Optional[List[Row]] = None
 
     def __init__(
             self,
-            medialibrary_db_fname: bytes = DEFAULT_MEDIALIBRARY_DB_FILE
+            medialibrary_db_fname: str = DEFAULT_MEDIALIBRARY_DB_FILE
     ) -> None:
         self._fname = medialibrary_db_fname
 

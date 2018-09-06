@@ -38,6 +38,14 @@ class ADCCuePoint(DataclassArchiver):
     number: int = 0
     time: float = 0
 
+    @staticmethod
+    def encode_archive(obj, archive):
+        if not obj.comment:
+            obj.comment = '{m}:{s:02d}'.format(
+                m=int(obj.time) // 60,
+                s=int(obj.time) % 60)
+        return DataclassArchiver.encode_archive(obj, archive)
+
 
 @dataclasses.dataclass
 class ADCMediaItemUserData(DataclassArchiver):

@@ -24,7 +24,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='Djtools',
-    version='0.2',
+    version='0.3',
     description='Tools for reading and writing DJ software media libraries.',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -44,7 +44,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     license='Apache License 2.0',
     install_requires=[
-        'bpylist2==2.0.2',
+        'bpylist2==2.0.3',
         'dataclasses;python_version<"3.7"',
     ],
     tests_require=["pytest"],
