@@ -47,7 +47,7 @@ class BadDataFormatError(Error):
 
 
 def is_supported_version(version_string):
-    return version_string == '2.0.8'
+    return version_string == '2.0.9'
 
 
 class Explorer:
@@ -62,16 +62,19 @@ class Explorer:
     ) -> None:
         self._fname = medialibrary_db_fname
 
-    def load(self):
+    def from_rows(self, data: List[Row]):
         models.register()
+        self._data = data
+        self.verify_version()
+
+    def load(self):
         if not os.path.exists(self._fname):
             raise Error(f"Media Library file not found: {self._fname}")
         data = []
         with sqlite3.connect(self._fname) as conn:
             for row in conn.execute(self._query):
                 data.append(Row(*row))
-        self._data = data
-        self.verify_version()
+        self.from_rows(data)
 
     @property
     def data(self) -> List[Row]:
